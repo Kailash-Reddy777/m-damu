@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Study Planner - Damu</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+
+<style>
+
+/* ===== Animated Background ===== */
+body {
+    margin: 0;
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(-45deg, #0f2027, #203a43, #2c5364, #000428);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+    color: white;
+    overflow-x: hidden;
+}
+
+@keyframes gradientBG {
+    0% { background-position: 0% 50% }
+    50% { background-position: 100% 50% }
+    100% { background-position: 0% 50% }
+}
+
+/* Floating Glow Circles */
+.circle {
+    position: fixed;
+    border-radius: 50%;
+    background: rgba(0,255,255,0.2);
+    animation: float 10s infinite ease-in-out;
+    filter: blur(40px);
+}
+.circle:nth-child(1) { width: 300px; height: 300px; top: 10%; left: 5%; }
+.circle:nth-child(2) { width: 250px; height: 250px; bottom: 15%; right: 5%; }
+.circle:nth-child(3) { width: 200px; height: 200px; top: 50%; left: 60%; }
+
+@keyframes float {
+    0%,100% { transform: translateY(0px); }
+    50% { transform: translateY(-50px); }
+}
+
+/* Glass Container */
+.container {
+    width: 90%;
+    max-width: 1000px;
+    margin: 50px auto;
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(15px);
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 0 40px rgba(0,255,255,0.3);
+    animation: fadeIn 2s ease;
+}
+
+@keyframes fadeIn {
+    from {opacity: 0; transform: translateY(30px);}
+    to {opacity: 1; transform: translateY(0);}
+}
+
+h1 {
+    text-align: center;
+    font-size: 40px;
+    background: linear-gradient(to right, cyan, violet);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Input Section */
+.input-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+input, select {
+    flex: 1;
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    outline: none;
+    font-size: 14px;
+}
+
+button {
+    padding: 12px 20px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    background: linear-gradient(45deg, cyan, violet);
+    color: white;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 15px cyan;
+}
+
+/* Task List */
+.task {
+    background: rgba(255,255,255,0.1);
+    margin-top: 15px;
+    padding: 15px;
+    border-radius: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    animation: slideIn 0.5s ease;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(-50px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+/* Progress Bar */
+.progress-container {
+    margin-top: 30px;
+}
+
+.progress-bar {
+    height: 15px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progress {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(to right, cyan, violet);
+    transition: 0.5s;
+}
+
+/* Timer */
+.timer {
+    text-align: center;
+    margin-top: 30px;
+    font-size: 24px;
+}
+
+.footer {
+    text-align: center;
+    margin-top: 40px;
+    font-size: 14px;
+    opacity: 0.8;
+}
+
+</style>
+</head>
+<body>
+
+<div class="circle"></div>
+<div class="circle"></div>
+<div class="circle"></div>
+
+<div class="container">
+    <h1>Study Planner App</h1>
+
+    <div class="input-group">
+        <input type="text" id="taskInput" placeholder="Enter Study Task">
+        <select id="subject">
+            <option>Math</option>
+            <option>Science</option>
+            <option>Programming</option>
+            <option>English</option>
+        </select>
+        <button onclick="addTask()">Add</button>
+    </div>
+
+    <div id="taskList"></div>
+
+    <div class="progress-container">
+        <h3>Daily Progress</h3>
+        <div class="progress-bar">
+            <div class="progress" id="progress"></div>
+        </div>
+    </div>
+
+    <div class="timer">
+        ⏳ Study Timer: <span id="time">00:00</span>
+        <br><br>
+        <button onclick="startTimer()">Start</button>
+        <button onclick="stopTimer()">Stop</button>
+    </div>
+
+    <div class="footer">
+        Created by <strong>Damu</strong> | 📧 mdamu@3206
+    </div>
+</div>
+
+<script>
+let totalTasks = 0;
+let completedTasks = 0;
+
+function addTask() {
+    const taskText = document.getElementById("taskInput").value;
+    const subject = document.getElementById("subject").value;
+
+    if(taskText === "") return;
+
+    totalTasks++;
+
+    const taskDiv = document.createElement("div");
+    taskDiv.className = "task";
+    taskDiv.innerHTML = `
+        <span>${taskText} - <b>${subject}</b></span>
+        <button onclick="completeTask(this)">✔</button>
+    `;
+
+    document.getElementById("taskList").appendChild(taskDiv);
+    document.getElementById("taskInput").value = "";
+
+    updateProgress();
+}
+
+function completeTask(button) {
+    button.parentElement.remove();
+    completedTasks++;
+    updateProgress();
+}
+
+function updateProgress() {
+    const progressPercent = totalTasks === 0 ? 0 : (completedTasks / totalTasks) * 100;
+    document.getElementById("progress").style.width = progressPercent + "%";
+}
+
+/* Timer */
+let seconds = 0;
+let interval;
+
+function startTimer() {
+    interval = setInterval(() => {
+        seconds++;
+        let mins = Math.floor(seconds / 60);
+        let secs = seconds % 60;
+        document.getElementById("time").innerText =
+            (mins < 10 ? "0" : "") + mins + ":" +
+            (secs < 10 ? "0" : "") + secs;
+    }, 1000);
+}
+
+function stopTimer() {
+    clearInterval(interval);
+}
+
+</script>
+
+</body>
+</html>
